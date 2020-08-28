@@ -5,6 +5,8 @@ go 1.14
 require (
 	github.com/EpiK-Protocol/go-epik v0.4.2-0.20200826134507-7347cf70b04d
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
+	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/ethereum/go-ethereum v1.9.5
 	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
 	github.com/filecoin-project/go-crypto v0.0.0-20191218222705-effae4ea9f03
 	github.com/filecoin-project/go-data-transfer v0.5.2 // indirect
@@ -26,7 +28,7 @@ require (
 	github.com/libp2p/go-libp2p v0.11.0 // indirect
 	github.com/libp2p/go-libp2p-record v0.1.3 // indirect
 	github.com/libp2p/go-libp2p-testing v0.1.2-0.20200422005655-8775583591d8 // indirect
-	github.com/miguelmota/go-ethereum-hdwallet v0.0.0-20200123000308-a60dcd172b4c // indirect
+	github.com/miguelmota/go-ethereum-hdwallet v0.0.0-20200123000308-a60dcd172b4c
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/onsi/ginkgo v1.14.0 // indirect
@@ -34,7 +36,9 @@ require (
 	github.com/whyrusleeping/cbor-gen v0.0.0-20200710004633-5379fc63235d
 	github.com/xorcare/golden v0.6.1-0.20191112154924-b87f686d7542 // indirect
 	go.opencensus.io v0.22.4
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/sys v0.0.0-20200828081204-131dc92a58d5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 )
 
