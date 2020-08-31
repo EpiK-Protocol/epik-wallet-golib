@@ -3,6 +3,7 @@ package epik
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -17,8 +18,8 @@ import (
 	"github.com/filecoin-project/specs-actors/actors/crypto"
 )
 
-//EpikWallet wallet
-type EpikWallet struct {
+//Wallet wallet
+type Wallet struct {
 	epikWallet *epikwallet.Wallet
 	rpcURL     string
 	header     http.Header
@@ -33,32 +34,32 @@ type PrivateKey struct {
 
 //EPKMessage ...
 type EPKMessage struct {
-	Version  int64
-	From     string
-	To       string
-	Value    string
-	Nonce    int64
-	GasLimit int64
-	GasPrice string
-	Method   string
-	Params   []byte
+	Version  int64  `json:"version"`
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Value    string `json:"value"`
+	Nonce    int64  `json:"nonce"`
+	GasLimit int64  `json:"gas_limit"`
+	GasPrice string `json:"gas_price"`
+	Method   string `json:"method"`
+	Params   []byte `json:"params"`
 }
 
 //NewWallet ...
-func NewWallet() (w *EpikWallet, err error) {
+func NewWallet() (w *Wallet, err error) {
 	ks := epikwallet.NewMemKeyStore()
 	wa, err := epikwallet.NewWallet(ks)
 	if err != nil {
 		return nil, err
 	}
-	w = &EpikWallet{
+	w = &Wallet{
 		epikWallet: wa,
 	}
 	return w, nil
 }
 
 //GenerateKey t:bls,secp256k1
-func (w *EpikWallet) GenerateKey(t string, seed []byte) (addrStr string, err error) {
+func (w *Wallet) GenerateKey(t string, seed []byte) (addrStr string, err error) {
 	var addr address.Address
 	switch strings.ToLower(t) {
 	case "bls":
@@ -75,7 +76,7 @@ func (w *EpikWallet) GenerateKey(t string, seed []byte) (addrStr string, err err
 }
 
 //AddrList ...
-func (w *EpikWallet) AddrList() (addrs []string, err error) {
+func (w *Wallet) AddrList() (addrs []string, err error) {
 	ads, err := w.epikWallet.ListAddrs()
 	if err != nil {
 		return nil, err
@@ -87,7 +88,7 @@ func (w *EpikWallet) AddrList() (addrs []string, err error) {
 }
 
 //HasAddr ...
-func (w *EpikWallet) HasAddr(addr string) (has bool, err error) {
+func (w *Wallet) HasAddr(addr string) (has bool, err error) {
 	ad, err := address.NewFromString(addr)
 	if err != nil {
 		return false, err
@@ -96,7 +97,7 @@ func (w *EpikWallet) HasAddr(addr string) (has bool, err error) {
 }
 
 //Export ...
-func (w *EpikWallet) Export(addr string) (privateKey PrivateKey, err error) {
+func (w *Wallet) Export(addr string) (privateKey PrivateKey, err error) {
 	privateKey = PrivateKey{}
 	ad, err := address.NewFromString(addr)
 	if err != nil {
@@ -120,7 +121,7 @@ func (w *EpikWallet) Export(addr string) (privateKey PrivateKey, err error) {
 }
 
 //Import ...
-func (w *EpikWallet) Import(privateKey PrivateKey) (addr string, err error) {
+func (w *Wallet) Import(privateKey PrivateKey) (addr string, err error) {
 	switch strings.ToLower(privateKey.KeyType) {
 	case "bks", "secp256k1":
 	default:
@@ -143,7 +144,7 @@ func (w *EpikWallet) Import(privateKey PrivateKey) (addr string, err error) {
 }
 
 //SetDefault ...
-func (w *EpikWallet) SetDefault(addr string) (err error) {
+func (w *Wallet) SetDefault(addr string) (err error) {
 	ad, err := address.NewFromString(addr)
 	if err != nil {
 		return err
@@ -151,15 +152,31 @@ func (w *EpikWallet) SetDefault(addr string) (err error) {
 	return w.epikWallet.SetDefault(ad)
 }
 
+//Sign ...
+func (w *Wallet) Sign(addr string, hash []byte) (signature []byte, err error) {
+	ad, err := w.epikWallet.GetDefault()
+	if addr != "" {
+		ad, err = address.NewFromString(addr)
+	}
+	if err != nil {
+		return
+	}
+	sign, err := w.epikWallet.Sign(w.ctx, ad, hash)
+	if err != nil {
+		return
+	}
+	return sign.MarshalBinary()
+}
+
 //SetRPC ...
-func (w *EpikWallet) SetRPC(url string, token string) (err error) {
+func (w *Wallet) SetRPC(url string, token string) (err error) {
 	w.rpcURL = url
 	w.header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	return
 }
 
 //Balance ...
-func (w *EpikWallet) Balance(addr string) (balance string, err error) {
+func (w *Wallet) Balance(addr string) (balance string, err error) {
 	ad, err := address.NewFromString(addr)
 	fullAPI, _, err := client.NewFullNodeRPC(w.rpcURL, w.header)
 	bal, err := fullAPI.WalletBalance(w.ctx, ad)
@@ -168,7 +185,7 @@ func (w *EpikWallet) Balance(addr string) (balance string, err error) {
 }
 
 //Send ...
-func (w *EpikWallet) Send(to string, amount string) (cid cid.Cid, err error) {
+func (w *Wallet) Send(to string, amount string) (cid cid.Cid, err error) {
 	fromAddr, err := w.epikWallet.GetDefault()
 	if err != nil {
 		return cid, err
@@ -202,7 +219,7 @@ func (w *EpikWallet) Send(to string, amount string) (cid cid.Cid, err error) {
 }
 
 //MessageList ...
-func (w *EpikWallet) MessageList(toHeight int64, addr string) (messages []*EPKMessage, err error) {
+func (w *Wallet) MessageList(toHeight int64, addr string) (messages string, err error) {
 	ad, err := address.NewFromString(addr)
 	if err != nil {
 		return
@@ -219,6 +236,7 @@ func (w *EpikWallet) MessageList(toHeight int64, addr string) (messages []*EPKMe
 	if err != nil {
 		return
 	}
+	ms := []*EPKMessage{}
 	for _, cid := range cids {
 		message, err := fullAPI.ChainGetMessage(w.ctx, cid)
 		if err != nil {
@@ -235,7 +253,9 @@ func (w *EpikWallet) MessageList(toHeight int64, addr string) (messages []*EPKMe
 			Method:   message.Method.String(),
 			Params:   message.Params,
 		}
-		messages = append(messages, epkmsg)
+		ms = append(ms, epkmsg)
 	}
+	bs, err := json.Marshal(&ms)
+	messages = string(bs)
 	return
 }
