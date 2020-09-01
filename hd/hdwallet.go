@@ -2,6 +2,7 @@ package hd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -22,16 +23,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type ethContext struct {
-	context.Context
-	RPCURL string
-}
-
 //Wallet ...
 type Wallet struct {
 	hdWallet  *hdwallet.Wallet
 	ethClient *ethclient.Client
-	ctx       *ethContext
+	rpcURL    string
 }
 
 type currency string
@@ -53,7 +49,6 @@ func NewFromMnemonic(mnemonic string) (wallet *Wallet, err error) {
 	if err != nil {
 		return nil, err
 	}
-	wallet.ctx = &ethContext{}
 	return
 }
 
@@ -64,7 +59,6 @@ func NewFromSeed(seed []byte) (wallet *Wallet, err error) {
 	if err != nil {
 		return nil, err
 	}
-	wallet.ctx = &ethContext{}
 	return
 }
 
@@ -85,17 +79,19 @@ func NewSeed() (seed []byte, err error) {
 
 //SetRPC ...
 func (wallet *Wallet) SetRPC(url string) (err error) {
-	wallet.ctx.RPCURL = url
+	wallet.rpcURL = url
 	return
 }
 
 //Accounts ...
-func (wallet *Wallet) Accounts() (addrs []string) {
+func (wallet *Wallet) Accounts() (addrs string) {
 	accs := wallet.hdWallet.Accounts()
+	addresses := []string{}
 	for _, acc := range accs {
-		addrs = append(addrs, acc.Address.Hex())
+		addresses = append(addresses, acc.Address.Hex())
 	}
-	return
+	data, _ := json.Marshal(&addresses)
+	return string(data)
 }
 
 //Contains ...
@@ -134,16 +130,16 @@ func (wallet *Wallet) SignText(address string, text string) (signature []byte, e
 
 //Balance ...
 func (wallet *Wallet) Balance(address string) (balance string, err error) {
-	if wallet.ctx.RPCURL == "" {
+	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
-	client, err := ethclient.DialContext(wallet.ctx, wallet.ctx.RPCURL)
+	client, err := ethclient.DialContext(context.Background(), wallet.rpcURL)
 	if err != nil {
 		return
 	}
 	defer client.Close()
 	addr := common.HexToAddress(address)
-	bal, err := client.BalanceAt(wallet.ctx, addr, nil)
+	bal, err := client.BalanceAt(context.Background(), addr, nil)
 	if err != nil {
 		return
 	}
@@ -154,10 +150,10 @@ func (wallet *Wallet) Balance(address string) (balance string, err error) {
 
 //TokenBalance ...
 func (wallet *Wallet) TokenBalance(address string, _currency string) (balance string, err error) {
-	if wallet.ctx.RPCURL == "" {
+	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
-	client, err := ethclient.DialContext(wallet.ctx, wallet.ctx.RPCURL)
+	client, err := ethclient.DialContext(context.Background(), wallet.rpcURL)
 	if err != nil {
 		return
 	}
@@ -204,10 +200,10 @@ func (wallet *Wallet) TokenBalance(address string, _currency string) (balance st
 
 //Transfer ...
 func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash string, err error) {
-	if wallet.ctx.RPCURL == "" {
+	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
-	client, err := ethclient.DialContext(wallet.ctx, wallet.ctx.RPCURL)
+	client, err := ethclient.DialContext(context.Background(), wallet.rpcURL)
 	if err != nil {
 		return
 	}
@@ -219,7 +215,7 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 		return "", err
 	}
 	amountWei = amountWei.Mul(decimal.NewFromFloat(math.Pow10(18)))
-	nonce, err := client.NonceAt(wallet.ctx, fromAddr, nil)
+	nonce, err := client.NonceAt(context.Background(), fromAddr, nil)
 	if err != nil {
 		return "", err
 	}
@@ -260,10 +256,10 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 
 //TransferToken ...
 func (wallet *Wallet) TransferToken(from string, to string, _currency string, amount string) (txHash string, err error) {
-	if wallet.ctx.RPCURL == "" {
+	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
-	client, err := ethclient.DialContext(wallet.ctx, wallet.ctx.RPCURL)
+	client, err := ethclient.DialContext(context.Background(), wallet.rpcURL)
 	if err != nil {
 		return
 	}
