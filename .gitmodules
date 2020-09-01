@@ -1,9 +1,3 @@
-[submodule "extern/go-epik-actors"]
-	path = extern/go-epik-actors
-	url = git@github.com:EpiK-Protocol/go-epik-actors.git
-[submodule "extern/go-epik"]
-	path = extern/go-epik
-	url = git@github.com:EpiK-Protocol/go-epik.git
 [submodule "extern/go-ethereum"]
 	path = extern/go-ethereum
-	url = git@github.com:ethereum/go-ethereum.git
+	url = git@github.com:EpiK-Protocol/go-ethereum.git
