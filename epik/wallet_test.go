@@ -44,7 +44,7 @@ func TestSignupEpik(t *testing.T) {
 
 	epikWallet, err := NewWallet()
 	panicErr(err)
-	epikAddr, err := epikWallet.GenerateKey("bls", seed[0:32])
+	epikAddr, err := epikWallet.GenerateKey("secp256k1", seed)
 	panicErr(err)
 	fmt.Printf("epik addr:%s\n", epikAddr)
 	epikSign, err := epikWallet.Sign(epikAddr, hash[:])

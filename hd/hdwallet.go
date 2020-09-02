@@ -30,14 +30,14 @@ type Wallet struct {
 	rpcURL    string
 }
 
-type currency string
+type currencyType string
 
 const (
-	USDT currency = "USDT"
-	EPK  currency = "EPK"
+	USDT currencyType = "USDT"
+	EPK  currencyType = "EPK"
 )
 
-var contractAddress = map[currency]string{
+var contractAddress = map[currencyType]string{
 	USDT: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 	EPK:  "0xDaF88906aC1DE12bA2b1D2f7bfC94E9638Ac40c4",
 }
@@ -149,7 +149,7 @@ func (wallet *Wallet) Balance(address string) (balance string, err error) {
 }
 
 //TokenBalance ...
-func (wallet *Wallet) TokenBalance(address string, _currency string) (balance string, err error) {
+func (wallet *Wallet) TokenBalance(address string, currency string) (balance string, err error) {
 	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
@@ -159,7 +159,7 @@ func (wallet *Wallet) TokenBalance(address string, _currency string) (balance st
 	}
 	defer client.Close()
 	addr := common.HexToAddress(address)
-	switch currency(_currency) {
+	switch currencyType(currency) {
 	case USDT:
 		contract := common.HexToAddress(contractAddress[USDT])
 		usdtToken, err := usdt.NewUsdt(contract, client)
@@ -255,7 +255,7 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 }
 
 //TransferToken ...
-func (wallet *Wallet) TransferToken(from string, to string, _currency string, amount string) (txHash string, err error) {
+func (wallet *Wallet) TransferToken(from string, to string, currency string, amount string) (txHash string, err error) {
 	if wallet.rpcURL == "" {
 		return "", fmt.Errorf("No RPC URL")
 	}
@@ -266,7 +266,7 @@ func (wallet *Wallet) TransferToken(from string, to string, _currency string, am
 	defer client.Close()
 	fromAddr := common.HexToAddress(from)
 	toAddr := common.HexToAddress(to)
-	switch currency(_currency) {
+	switch currencyType(currency) {
 	case USDT:
 		contract := common.HexToAddress(contractAddress[USDT])
 		usdtToken, err := usdt.NewUsdt(contract, client)
@@ -386,7 +386,7 @@ func (wallet *Wallet) TransferToken(from string, to string, _currency string, am
 var httpClient = &http.Client{Timeout: time.Duration(20 * time.Second)}
 
 //Transactions ...
-func (wallet *Wallet) Transactions(address string, _currency string, page, offset int64, asc bool) (txs string, err error) {
+func (wallet *Wallet) Transactions(address string, currency string, page, offset int64, asc bool) (txs string, err error) {
 	u, _ := url.Parse("https://api.etherscan.io/api")
 	query := u.Query()
 	query.Set("module", "account")
@@ -396,7 +396,7 @@ func (wallet *Wallet) Transactions(address string, _currency string, page, offse
 		query.Set("sort", "asc")
 	} else {
 	}
-	switch currency(_currency) {
+	switch currencyType(currency) {
 	case USDT, EPK:
 		query.Set("action", "tokentx")
 	default:

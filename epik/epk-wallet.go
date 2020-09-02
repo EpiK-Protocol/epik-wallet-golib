@@ -2,7 +2,7 @@ package epik
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,7 +11,6 @@ import (
 	"github.com/EpiK-Protocol/go-epik/api/client"
 	"github.com/EpiK-Protocol/go-epik/chain/types"
 	epikwallet "github.com/EpiK-Protocol/go-epik/chain/wallet"
-	"github.com/ipfs/go-cid"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/specs-actors/actors/abi"
@@ -23,7 +22,6 @@ type Wallet struct {
 	epikWallet *epikwallet.Wallet
 	rpcURL     string
 	header     http.Header
-	ctx        context.Context
 }
 
 //PrivateKey ...
@@ -88,17 +86,18 @@ func (w *Wallet) AddrList() (addrs []string, err error) {
 }
 
 //HasAddr ...
-func (w *Wallet) HasAddr(addr string) (has bool, err error) {
+func (w *Wallet) HasAddr(addr string) (has bool) {
 	ad, err := address.NewFromString(addr)
 	if err != nil {
-		return false, err
+		return false
 	}
-	return w.epikWallet.HasKey(ad)
+	has, _ = w.epikWallet.HasKey(ad)
+	return
 }
 
 //Export ...
-func (w *Wallet) Export(addr string) (privateKey PrivateKey, err error) {
-	privateKey = PrivateKey{}
+func (w *Wallet) Export(addr string) (privateKey *PrivateKey, err error) {
+	privateKey = &PrivateKey{}
 	ad, err := address.NewFromString(addr)
 	if err != nil {
 		return
@@ -114,21 +113,20 @@ func (w *Wallet) Export(addr string) (privateKey PrivateKey, err error) {
 	if err != nil {
 		return
 	}
-
 	privateKey.KeyType = keyInfo.Type
-	privateKey.PrivateKey = base64.StdEncoding.EncodeToString(keyInfo.PrivateKey)
+	privateKey.PrivateKey = hex.EncodeToString(keyInfo.PrivateKey)
 	return
 }
 
 //Import ...
-func (w *Wallet) Import(privateKey PrivateKey) (addr string, err error) {
+func (w *Wallet) Import(privateKey *PrivateKey) (addr string, err error) {
 	switch strings.ToLower(privateKey.KeyType) {
 	case "bks", "secp256k1":
 	default:
 		return "", fmt.Errorf("Key Type (%s) Not Suppoted", privateKey.KeyType)
 
 	}
-	pk, err := base64.StdEncoding.DecodeString(privateKey.PrivateKey)
+	pk, err := hex.DecodeString(privateKey.PrivateKey)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +159,7 @@ func (w *Wallet) Sign(addr string, hash []byte) (signature []byte, err error) {
 	if err != nil {
 		return
 	}
-	sign, err := w.epikWallet.Sign(w.ctx, ad, hash)
+	sign, err := w.epikWallet.Sign(context.Background(), ad, hash)
 	if err != nil {
 		return
 	}
@@ -171,6 +169,7 @@ func (w *Wallet) Sign(addr string, hash []byte) (signature []byte, err error) {
 //SetRPC ...
 func (w *Wallet) SetRPC(url string, token string) (err error) {
 	w.rpcURL = url
+	w.header = http.Header{}
 	w.header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	return
 }
@@ -179,25 +178,25 @@ func (w *Wallet) SetRPC(url string, token string) (err error) {
 func (w *Wallet) Balance(addr string) (balance string, err error) {
 	ad, err := address.NewFromString(addr)
 	fullAPI, _, err := client.NewFullNodeRPC(w.rpcURL, w.header)
-	bal, err := fullAPI.WalletBalance(w.ctx, ad)
+	bal, err := fullAPI.WalletBalance(context.Background(), ad)
 	balance = bal.String()
 	return
 }
 
 //Send ...
-func (w *Wallet) Send(to string, amount string) (cid cid.Cid, err error) {
+func (w *Wallet) Send(to string, amount string) (cidStr string, err error) {
 	fromAddr, err := w.epikWallet.GetDefault()
 	if err != nil {
-		return cid, err
+		return "", err
 	}
 	toAddr, err := address.NewFromString(to)
 	fullAPI, _, err := client.NewFullNodeRPC(w.rpcURL, w.header)
 	if err != nil {
 		return
 	}
-	head, err := fullAPI.ChainHead(w.ctx)
-	gasPrice, err := fullAPI.MpoolEstimateGasPrice(w.ctx, 10, fromAddr, 10000, head.Key())
-	epk, err := types.ParseFIL(amount)
+	head, err := fullAPI.ChainHead(context.Background())
+	gasPrice, err := fullAPI.MpoolEstimateGasPrice(context.Background(), 10, fromAddr, 10000, head.Key())
+	epk, err := types.ParseEPK(amount)
 	msg := types.Message{
 		From:     fromAddr,
 		To:       toAddr,
@@ -214,8 +213,8 @@ func (w *Wallet) Send(to string, amount string) (cid cid.Cid, err error) {
 		Signature: *signature,
 	}
 	fmt.Println(signedMsg)
-	cid, err = fullAPI.MpoolPush(context.Background(), signedMsg)
-	return
+	c, err := fullAPI.MpoolPush(context.Background(), signedMsg)
+	return c.String(), nil
 }
 
 //MessageList ...
@@ -228,17 +227,17 @@ func (w *Wallet) MessageList(toHeight int64, addr string) (messages string, err 
 	if err != nil {
 		return
 	}
-	head, err := fullAPI.ChainHead(w.ctx)
+	head, err := fullAPI.ChainHead(context.Background())
 	if err != nil {
 		return
 	}
-	cids, err := fullAPI.StateListMessages(w.ctx, &types.Message{From: ad, To: ad}, head.Key(), abi.ChainEpoch(toHeight))
+	cids, err := fullAPI.StateListMessages(context.Background(), &types.Message{From: ad, To: ad}, head.Key(), abi.ChainEpoch(toHeight))
 	if err != nil {
 		return
 	}
 	ms := []*EPKMessage{}
 	for _, cid := range cids {
-		message, err := fullAPI.ChainGetMessage(w.ctx, cid)
+		message, err := fullAPI.ChainGetMessage(context.Background(), cid)
 		if err != nil {
 			continue
 		}

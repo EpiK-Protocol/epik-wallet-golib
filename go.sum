@@ -52,6 +52,9 @@ github.com/DataDog/zstd v1.3.6-0.20190409195224-796139022798/go.mod h1:1jcaCB/uf
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/EpiK-Protocol/go-epik v0.4.2-0.20200830054824-2dc4acb05489 h1:RzBx9CMzpyDRr693A7oLVFXeBB7z13O9KGrpgaWM2K0=
 github.com/EpiK-Protocol/go-epik v0.4.2-0.20200830054824-2dc4acb05489/go.mod h1:lnoRBSl+1ZFOvtk59qKo0nCXulf2kiYG15YIdQfCFYA=
+github.com/EpiK-Protocol/go-epik v0.4.2-0.20200901164337-9b91560725db h1:UHTlff7UK9L71aKOHgk949wwgVWjJsEsDEvevd3asGE=
+github.com/EpiK-Protocol/go-epik v0.4.2-0.20200901164337-9b91560725db/go.mod h1:UJ+YymYViHvpNJyofp+YvFoN8v3Y531a7q1hXWuadEA=
+github.com/EpiK-protocol/go-epik-actors v0.6.2-0.20200901155400-6872e448d58b/go.mod h1:ppIYDlWQvcfzDW0zxar53Z1Ag69er4BmFvJAtV1uDMI=
 github.com/EpiK-protocol/go-epik-actors v0.8.1-0.20200724160729-e21acefaddcb h1:NqUUTYnIUqrSDPGa3OVYj/oqY35xbsUXuobu9pQZCSQ=
 github.com/EpiK-protocol/go-epik-actors v0.8.1-0.20200724160729-e21acefaddcb/go.mod h1:J4FabcXLWecc4XBlrUoS+DE87QW8okFa88n+xh2asVM=
 github.com/GeertJohan/go.incremental v1.0.0/go.mod h1:6fAjUhbVuX1KcMD3c8TEgVUqmo4seqhv0i0kdATSkM0=
@@ -199,6 +202,7 @@ github.com/docker/docker v1.4.2-0.20180625184442-8e610b2b55bf/go.mod h1:eEKB0N0r
 github.com/docker/go-units v0.4.0 h1:3uh0PgVws3nIA0Q+MwDC8yjEPf9zjRfZZWXZYDct3Tw=
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/dop251/goja v0.0.0-20200219165308-d1232e640a87/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
+github.com/dop251/goja v0.0.0-20200721192441-a695b0cdd498/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/drand/bls12-381 v0.3.2/go.mod h1:dtcLgPtYT38L3NO6mPDYH0nbpc5tjPassDqiniuAt4Y=
 github.com/drand/drand v0.9.2-0.20200616080806-a94e9c1636a4/go.mod h1:Bu8QYdU0YdB2ZQZezHxabmOIciddiwLRnyV4nuZ2HQE=
 github.com/drand/kyber v1.0.1-0.20200110225416-8de27ed8c0e2/go.mod h1:UpXoA0Upd1N9l4TvRPHr1qAUBBERj6JQ/mnKI3BPEmw=
@@ -244,6 +248,7 @@ github.com/filecoin-project/go-amt-ipld/v2 v2.0.1-0.20200424220931-6263827e49f2 
 github.com/filecoin-project/go-amt-ipld/v2 v2.0.1-0.20200424220931-6263827e49f2/go.mod h1:boRtQhzmxNocrMxOXo1NYn4oUc1NGvR8tEa79wApNXg=
 github.com/filecoin-project/go-amt-ipld/v2 v2.0.1-0.20200714161347-fbee6e96f694 h1:Hm1/BV2ZGmClQpGzzcCZBkr+DHAtU7+lboqddqhxmAU=
 github.com/filecoin-project/go-amt-ipld/v2 v2.0.1-0.20200714161347-fbee6e96f694/go.mod h1:eQdFTYVHyv7Wm+0rwAcJCSKbqGyDYn4f4Ev3fW3qbWU=
+github.com/filecoin-project/go-bitfield v0.0.1/go.mod h1:Ry9/iUlWSyjPUzlAvdnfy4Gtvrq4kWmWDztCU1yEgJY=
 github.com/filecoin-project/go-bitfield v0.0.2-0.20200518150651-562fdb554b6e/go.mod h1:Ry9/iUlWSyjPUzlAvdnfy4Gtvrq4kWmWDztCU1yEgJY=
 github.com/filecoin-project/go-bitfield v0.0.2-0.20200629135455-587b27927d38 h1:B2gUde2DlfCb5YMYNVems2orobxC3KhrX3migym1IOQ=
 github.com/filecoin-project/go-bitfield v0.0.2-0.20200629135455-587b27927d38/go.mod h1:Ry9/iUlWSyjPUzlAvdnfy4Gtvrq4kWmWDztCU1yEgJY=
