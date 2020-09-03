@@ -96,8 +96,7 @@ func (w *Wallet) HasAddr(addr string) (has bool) {
 }
 
 //Export ...
-func (w *Wallet) Export(addr string) (privateKey *PrivateKey, err error) {
-	privateKey = &PrivateKey{}
+func (w *Wallet) Export(addr string) (privateKey string, err error) {
 	ad, err := address.NewFromString(addr)
 	if err != nil {
 		return
@@ -113,26 +112,25 @@ func (w *Wallet) Export(addr string) (privateKey *PrivateKey, err error) {
 	if err != nil {
 		return
 	}
-	privateKey.KeyType = keyInfo.Type
-	privateKey.PrivateKey = hex.EncodeToString(keyInfo.PrivateKey)
+	data, err := json.Marshal(keyInfo)
+	if err != nil {
+		return "", err
+	}
+	privateKey = hex.EncodeToString(data)
 	return
 }
 
 //Import ...
-func (w *Wallet) Import(privateKey *PrivateKey) (addr string, err error) {
-	switch strings.ToLower(privateKey.KeyType) {
-	case "bks", "secp256k1":
-	default:
-		return "", fmt.Errorf("Key Type (%s) Not Suppoted", privateKey.KeyType)
+func (w *Wallet) Import(privateKey string) (addr string, err error) {
 
-	}
-	pk, err := hex.DecodeString(privateKey.PrivateKey)
+	data, err := hex.DecodeString(privateKey)
 	if err != nil {
 		return "", err
 	}
-	keyInfo := &types.KeyInfo{
-		Type:       privateKey.KeyType,
-		PrivateKey: pk,
+	keyInfo := &types.KeyInfo{}
+	err = json.Unmarshal(data, keyInfo)
+	if err != nil {
+		return "", err
 	}
 	ad, err := w.epikWallet.Import(keyInfo)
 	if err != nil {
@@ -178,7 +176,13 @@ func (w *Wallet) SetRPC(url string, token string) (err error) {
 func (w *Wallet) Balance(addr string) (balance string, err error) {
 	ad, err := address.NewFromString(addr)
 	fullAPI, _, err := client.NewFullNodeRPC(w.rpcURL, w.header)
+	if err != nil {
+		return "", err
+	}
 	bal, err := fullAPI.WalletBalance(context.Background(), ad)
+	if err != nil {
+		return "", err
+	}
 	balance = bal.String()
 	return
 }
@@ -206,7 +210,7 @@ func (w *Wallet) Send(to string, amount string) (cidStr string, err error) {
 	}
 	signature, err := w.epikWallet.Sign(context.Background(), fromAddr, msg.Cid().Bytes())
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
 	signedMsg := &types.SignedMessage{
 		Message:   msg,
@@ -214,6 +218,9 @@ func (w *Wallet) Send(to string, amount string) (cidStr string, err error) {
 	}
 	fmt.Println(signedMsg)
 	c, err := fullAPI.MpoolPush(context.Background(), signedMsg)
+	if err != nil {
+		return "", err
+	}
 	return c.String(), nil
 }
 
@@ -255,6 +262,9 @@ func (w *Wallet) MessageList(toHeight int64, addr string) (messages string, err 
 		ms = append(ms, epkmsg)
 	}
 	bs, err := json.Marshal(&ms)
+	if err != nil {
+		return "", err
+	}
 	messages = string(bs)
 	return
 }

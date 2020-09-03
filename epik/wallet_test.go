@@ -70,6 +70,12 @@ func TestSignupEpik(t *testing.T) {
 	fmt.Println(resp.StatusCode, string(respbody))
 }
 
+func TestSendEPK(t *testing.T) {
+	epikWallet, err := NewWallet()
+	panicErr(err)
+	epikWallet
+}
+
 func panicErr(err error) {
 	if err != nil {
 		panic(err)
