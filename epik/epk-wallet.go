@@ -6,11 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/EpiK-Protocol/go-epik/api/client"
 	"github.com/EpiK-Protocol/go-epik/chain/types"
 	epikwallet "github.com/EpiK-Protocol/go-epik/chain/wallet"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/shopspring/decimal"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/specs-actors/actors/abi"
@@ -57,7 +62,12 @@ func NewWallet() (w *Wallet, err error) {
 }
 
 //GenerateKey t:bls,secp256k1
-func (w *Wallet) GenerateKey(t string, seed []byte) (addrStr string, err error) {
+func (w *Wallet) GenerateKey(t string, seed []byte, path string) (addrStr string, err error) {
+	seed, err = epikHDPathSeed(seed, path)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(seed)
 	var addr address.Address
 	switch strings.ToLower(t) {
 	case "bls":
@@ -71,6 +81,34 @@ func (w *Wallet) GenerateKey(t string, seed []byte) (addrStr string, err error) 
 		return "", err
 	}
 	return addr.String(), nil
+}
+
+func epikHDPathSeed(seed []byte, path string) (pathSeed []byte, err error) {
+	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
+	if err != nil {
+		return nil, err
+	}
+	p, err := accounts.ParseDerivationPath(path)
+	if err != nil {
+		return nil, err
+	}
+	key := masterKey
+	for _, n := range p {
+		key, err = key.Child(n)
+		if err != nil {
+			return nil, err
+		}
+	}
+	rawSeed := reflect.ValueOf(key).Elem().FieldByName("key").Bytes()
+	seed = make([]byte, 32)
+	if len(rawSeed) <= 32 {
+		copy(seed[32-len(rawSeed):], rawSeed[:])
+	} else {
+		copy(seed[:], rawSeed[:])
+	}
+
+	return seed, nil
+
 }
 
 //AddrList ...
@@ -183,7 +221,7 @@ func (w *Wallet) Balance(addr string) (balance string, err error) {
 	if err != nil {
 		return "", err
 	}
-	balance = bal.String()
+	balance = BigIntDiv(bal.String(), 18)
 	return
 }
 
@@ -194,19 +232,36 @@ func (w *Wallet) Send(to string, amount string) (cidStr string, err error) {
 		return "", err
 	}
 	toAddr, err := address.NewFromString(to)
+	if err != nil {
+		return
+	}
 	fullAPI, _, err := client.NewFullNodeRPC(w.rpcURL, w.header)
 	if err != nil {
 		return
 	}
 	head, err := fullAPI.ChainHead(context.Background())
+	if err != nil {
+		return
+	}
 	gasPrice, err := fullAPI.MpoolEstimateGasPrice(context.Background(), 10, fromAddr, 10000, head.Key())
+	if err != nil {
+		return
+	}
+	nonce, err := fullAPI.MpoolGetNonce(context.Background(), fromAddr)
+	if err != nil {
+		return
+	}
 	epk, err := types.ParseEPK(amount)
+	if err != nil {
+		return
+	}
 	msg := types.Message{
 		From:     fromAddr,
 		To:       toAddr,
 		Value:    types.BigInt(epk),
 		GasPrice: gasPrice,
 		GasLimit: 10000,
+		Nonce:    nonce,
 	}
 	signature, err := w.epikWallet.Sign(context.Background(), fromAddr, msg.Cid().Bytes())
 	if err != nil {
@@ -238,7 +293,9 @@ func (w *Wallet) MessageList(toHeight int64, addr string) (messages string, err 
 	if err != nil {
 		return
 	}
-	cids, err := fullAPI.StateListMessages(context.Background(), &types.Message{From: ad, To: ad}, head.Key(), abi.ChainEpoch(toHeight))
+	from, err := fullAPI.StateListMessages(context.Background(), &types.Message{From: ad}, head.Key(), abi.ChainEpoch(toHeight))
+	to, err := fullAPI.StateListMessages(context.Background(), &types.Message{To: ad}, head.Key(), abi.ChainEpoch(toHeight))
+	cids := append(from, to...)
 	if err != nil {
 		return
 	}
@@ -267,4 +324,18 @@ func (w *Wallet) MessageList(toHeight int64, addr string) (messages string, err 
 	}
 	messages = string(bs)
 	return
+}
+func BigIntDiv(balance string, decimals int) string {
+	bal, _ := decimal.NewFromString(balance)
+	for i := 0; i < decimals; i++ {
+		bal = bal.Div(decimal.NewFromInt(10))
+	}
+	return bal.String()
+}
+func BigIntMul(balance string, decimals int) string {
+	bal, _ := decimal.NewFromString(balance)
+	for i := 0; i < decimals; i++ {
+		bal = bal.Mul(decimal.NewFromInt(10))
+	}
+	return bal.String()
 }

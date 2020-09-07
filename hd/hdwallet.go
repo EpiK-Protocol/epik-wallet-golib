@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -143,8 +142,7 @@ func (wallet *Wallet) Balance(address string) (balance string, err error) {
 	if err != nil {
 		return
 	}
-	debal := decimal.NewFromBigInt(bal, 10).Div(decimal.NewFromFloat(math.Pow10(18)))
-	balance = debal.String()
+	balance = BigIntDiv(bal.String(), 18)
 	return
 }
 
@@ -175,7 +173,7 @@ func (wallet *Wallet) TokenBalance(address string, currency string) (balance str
 		if err != nil {
 			return "", err
 		}
-		balance = decimal.NewFromBigInt(bal, 10).Div(decimal.NewFromFloat(math.Pow10(int(dec.Int64())))).String()
+		balance = BigIntDiv(bal.String(), int(dec.Int64()))
 	case EPK:
 		contract := common.HexToAddress(contractAddress[EPK])
 		epkToken, err := epk.NewEpk(contract, client)
@@ -191,7 +189,7 @@ func (wallet *Wallet) TokenBalance(address string, currency string) (balance str
 		if err != nil {
 			return "", err
 		}
-		balance = decimal.NewFromBigInt(bal, 10).Div(decimal.NewFromFloat(math.Pow10(int(dec)))).String()
+		balance = BigIntDiv(bal.String(), int(dec))
 	default:
 		return "", fmt.Errorf("Currency  Unsuppoted")
 	}
@@ -210,11 +208,11 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 	defer client.Close()
 	fromAddr := common.HexToAddress(from)
 	toAddr := common.HexToAddress(to)
-	amountWei, err := decimal.NewFromString(amount)
+	amountWei, err := decimal.NewFromString(BigIntMul(amount, 18))
 	if err != nil {
 		return "", err
 	}
-	amountWei = amountWei.Mul(decimal.NewFromFloat(math.Pow10(18)))
+
 	nonce, err := client.NonceAt(context.Background(), fromAddr, nil)
 	if err != nil {
 		return "", err
@@ -279,12 +277,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 			return "", err
 		}
 		dec, err := usdtToken.Decimals(opts)
-		amountDec, err := decimal.NewFromString(amount)
+		amountWei, err := decimal.NewFromString(BigIntMul(amount, int(dec.Int64())))
 		if err != nil {
 			return "", err
 		}
-
-		amountWei := amountDec.Mul(decimal.NewFromFloat(math.Pow10(int(dec.Int64()))))
 		if amountWei.Cmp(decimal.NewFromBigInt(bal, 10)) > 0 {
 			return "", fmt.Errorf("Out of Balance")
 		}
@@ -314,9 +310,8 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		}
 		auth := bind.NewKeyedTransactor(privateKey)
 		auth.Nonce = big.NewInt(int64(nonce))
-		auth.GasLimit = uint64(100000)
+		auth.GasLimit = uint64(60000)
 		auth.GasPrice = gasPrice
-
 		tx, err := usdtToken.Transfer(auth, toAddr, amountWei.BigInt())
 		if err != nil {
 			return "", err
@@ -334,12 +329,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 			return "", err
 		}
 		dec, err := epkToken.Decimals(opts)
-		amountDec, err := decimal.NewFromString(amount)
+		amountWei, err := decimal.NewFromString(BigIntMul(amount, int(dec)))
 		if err != nil {
 			return "", err
 		}
-
-		amountWei := amountDec.Mul(decimal.NewFromFloat(math.Pow10(int(dec))))
 		if amountWei.Cmp(decimal.NewFromBigInt(bal, 10)) > 0 {
 			return "", fmt.Errorf("Out of Balance")
 		}
@@ -369,7 +362,7 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		}
 		auth := bind.NewKeyedTransactor(privateKey)
 		auth.Nonce = big.NewInt(int64(nonce))
-		auth.GasLimit = uint64(100000)
+		auth.GasLimit = uint64(60000)
 		auth.GasPrice = gasPrice
 
 		tx, err := epkToken.Transfer(auth, toAddr, amountWei.BigInt())
@@ -387,7 +380,7 @@ var httpClient = &http.Client{Timeout: time.Duration(20 * time.Second)}
 
 //Transactions ...
 func (wallet *Wallet) Transactions(address string, currency string, page, offset int64, asc bool) (txs string, err error) {
-	u, _ := url.Parse("https://api.etherscan.io/api")
+	u, _ := url.Parse("https://tx.epik-protocol.io/api")
 	query := u.Query()
 	query.Set("module", "account")
 	query.Set("page", fmt.Sprintf("%d", page))
@@ -402,6 +395,8 @@ func (wallet *Wallet) Transactions(address string, currency string, page, offset
 	default:
 		query.Set("action", "txlist")
 	}
+	query.Set("address", address)
+	query.Set("contractaddress", contractAddress[currencyType(currency)])
 	u.RawQuery = query.Encode()
 	resp, err := http.Get(u.String())
 	if err != nil {
@@ -416,4 +411,19 @@ func (wallet *Wallet) Transactions(address string, currency string, page, offset
 	}
 	txs = string(body)
 	return
+}
+
+func BigIntDiv(balance string, decimals int) string {
+	bal, _ := decimal.NewFromString(balance)
+	for i := 0; i < decimals; i++ {
+		bal = bal.Div(decimal.NewFromInt(10))
+	}
+	return bal.String()
+}
+func BigIntMul(balance string, decimals int) string {
+	bal, _ := decimal.NewFromString(balance)
+	for i := 0; i < decimals; i++ {
+		bal = bal.Mul(decimal.NewFromInt(10))
+	}
+	return bal.String()
 }

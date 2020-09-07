@@ -35,7 +35,7 @@ func main() {
 
 	epikWallet, err := epik.NewWallet()
 	panicErr(err)
-	epikAddr, err := epikWallet.GenerateKey("bls", seed)
+	epikAddr, err := epikWallet.GenerateKey("bls", seed, "m/44'/196'/1'/0/0")
 	panicErr(err)
 	fmt.Printf("epik addr:%s\n", epikAddr)
 	epikSign, err := epikWallet.Sign(epikAddr, hash[:])
