@@ -24,7 +24,6 @@ func main() {
 	path := hdwallet.MustParseDerivationPath("m/44'/60'/0'/0/0")
 	account, err := wallet.Derive(path, false)
 	panicErr(err)
-	fmt.Println(wallet.Accounts)
 	erc20Address := account.Address.Hex()
 	fmt.Println(erc20Address)
 	weixin := "18901085780"

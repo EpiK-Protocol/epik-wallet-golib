@@ -137,7 +137,7 @@ func bindEpk(address common.Address, caller bind.ContractCaller, transactor bind
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Epk *EpkRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Epk *EpkRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Epk.Contract.EpkCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -156,7 +156,7 @@ func (_Epk *EpkRaw) Transact(opts *bind.TransactOpts, method string, params ...i
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Epk *EpkCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Epk *EpkCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Epk.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -175,12 +175,17 @@ func (_Epk *EpkTransactorRaw) Transact(opts *bind.TransactOpts, method string, p
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_Epk *EpkCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -201,12 +206,17 @@ func (_Epk *EpkCallerSession) Allowance(owner common.Address, spender common.Add
 //
 // Solidity: function balanceOf(address owner) view returns(uint256)
 func (_Epk *EpkCaller) BalanceOf(opts *bind.CallOpts, owner common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "balanceOf", owner)
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "balanceOf", owner)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -227,12 +237,17 @@ func (_Epk *EpkCallerSession) BalanceOf(owner common.Address) (*big.Int, error) 
 //
 // Solidity: function cap() view returns(uint256)
 func (_Epk *EpkCaller) Cap(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "cap")
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "cap")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Cap is a free data retrieval call binding the contract method 0x355274ea.
@@ -253,12 +268,17 @@ func (_Epk *EpkCallerSession) Cap() (*big.Int, error) {
 //
 // Solidity: function decimals() view returns(uint8)
 func (_Epk *EpkCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -279,12 +299,17 @@ func (_Epk *EpkCallerSession) Decimals() (uint8, error) {
 //
 // Solidity: function isMinter(address account) view returns(bool)
 func (_Epk *EpkCaller) IsMinter(opts *bind.CallOpts, account common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "isMinter", account)
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "isMinter", account)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // IsMinter is a free data retrieval call binding the contract method 0xaa271e1a.
@@ -305,12 +330,17 @@ func (_Epk *EpkCallerSession) IsMinter(account common.Address) (bool, error) {
 //
 // Solidity: function name() view returns(string)
 func (_Epk *EpkCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -331,12 +361,17 @@ func (_Epk *EpkCallerSession) Name() (string, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_Epk *EpkCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -357,12 +392,17 @@ func (_Epk *EpkCallerSession) Symbol() (string, error) {
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_Epk *EpkCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Epk.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _Epk.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -697,6 +737,7 @@ func (_Epk *EpkFilterer) ParseApproval(log types.Log) (*EpkApproval, error) {
 	if err := _Epk.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -840,6 +881,7 @@ func (_Epk *EpkFilterer) ParseMinterAdded(log types.Log) (*EpkMinterAdded, error
 	if err := _Epk.contract.UnpackLog(event, "MinterAdded", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -983,6 +1025,7 @@ func (_Epk *EpkFilterer) ParseMinterRemoved(log types.Log) (*EpkMinterRemoved, e
 	if err := _Epk.contract.UnpackLog(event, "MinterRemoved", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1136,5 +1179,6 @@ func (_Epk *EpkFilterer) ParseTransfer(log types.Log) (*EpkTransfer, error) {
 	if err := _Epk.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

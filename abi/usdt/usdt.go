@@ -137,7 +137,7 @@ func bindUsdt(address common.Address, caller bind.ContractCaller, transactor bin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Usdt *UsdtRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Usdt *UsdtRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Usdt.Contract.UsdtCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -156,7 +156,7 @@ func (_Usdt *UsdtRaw) Transact(opts *bind.TransactOpts, method string, params ..
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Usdt *UsdtCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Usdt *UsdtCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Usdt.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -175,12 +175,17 @@ func (_Usdt *UsdtTransactorRaw) Transact(opts *bind.TransactOpts, method string,
 //
 // Solidity: function MAX_UINT() view returns(uint256)
 func (_Usdt *UsdtCaller) MAXUINT(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "MAX_UINT")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "MAX_UINT")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // MAXUINT is a free data retrieval call binding the contract method 0xe5b5019a.
@@ -201,12 +206,17 @@ func (_Usdt *UsdtCallerSession) MAXUINT() (*big.Int, error) {
 //
 // Solidity: function _totalSupply() view returns(uint256)
 func (_Usdt *UsdtCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "_totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "_totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x3eaaf86b.
@@ -227,12 +237,17 @@ func (_Usdt *UsdtCallerSession) TotalSupply() (*big.Int, error) {
 //
 // Solidity: function allowance(address _owner, address _spender) view returns(uint256 remaining)
 func (_Usdt *UsdtCaller) Allowance(opts *bind.CallOpts, _owner common.Address, _spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "allowance", _owner, _spender)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "allowance", _owner, _spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -253,12 +268,17 @@ func (_Usdt *UsdtCallerSession) Allowance(_owner common.Address, _spender common
 //
 // Solidity: function allowed(address , address ) view returns(uint256)
 func (_Usdt *UsdtCaller) Allowed(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "allowed", arg0, arg1)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "allowed", arg0, arg1)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowed is a free data retrieval call binding the contract method 0x5c658165.
@@ -279,12 +299,17 @@ func (_Usdt *UsdtCallerSession) Allowed(arg0 common.Address, arg1 common.Address
 //
 // Solidity: function balanceOf(address who) view returns(uint256)
 func (_Usdt *UsdtCaller) BalanceOf(opts *bind.CallOpts, who common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "balanceOf", who)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "balanceOf", who)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -305,12 +330,17 @@ func (_Usdt *UsdtCallerSession) BalanceOf(who common.Address) (*big.Int, error) 
 //
 // Solidity: function balances(address ) view returns(uint256)
 func (_Usdt *UsdtCaller) Balances(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "balances", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "balances", arg0)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Balances is a free data retrieval call binding the contract method 0x27e235e3.
@@ -331,12 +361,17 @@ func (_Usdt *UsdtCallerSession) Balances(arg0 common.Address) (*big.Int, error) 
 //
 // Solidity: function basisPointsRate() view returns(uint256)
 func (_Usdt *UsdtCaller) BasisPointsRate(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "basisPointsRate")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "basisPointsRate")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BasisPointsRate is a free data retrieval call binding the contract method 0xdd644f72.
@@ -357,12 +392,17 @@ func (_Usdt *UsdtCallerSession) BasisPointsRate() (*big.Int, error) {
 //
 // Solidity: function decimals() view returns(uint256)
 func (_Usdt *UsdtCaller) Decimals(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -383,12 +423,17 @@ func (_Usdt *UsdtCallerSession) Decimals() (*big.Int, error) {
 //
 // Solidity: function deprecated() view returns(bool)
 func (_Usdt *UsdtCaller) Deprecated(opts *bind.CallOpts) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "deprecated")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "deprecated")
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // Deprecated is a free data retrieval call binding the contract method 0x0e136b19.
@@ -409,12 +454,17 @@ func (_Usdt *UsdtCallerSession) Deprecated() (bool, error) {
 //
 // Solidity: function getBlackListStatus(address _maker) view returns(bool)
 func (_Usdt *UsdtCaller) GetBlackListStatus(opts *bind.CallOpts, _maker common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "getBlackListStatus", _maker)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "getBlackListStatus", _maker)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // GetBlackListStatus is a free data retrieval call binding the contract method 0x59bf1abe.
@@ -435,12 +485,17 @@ func (_Usdt *UsdtCallerSession) GetBlackListStatus(_maker common.Address) (bool,
 //
 // Solidity: function getOwner() view returns(address)
 func (_Usdt *UsdtCaller) GetOwner(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "getOwner")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "getOwner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // GetOwner is a free data retrieval call binding the contract method 0x893d20e8.
@@ -461,12 +516,17 @@ func (_Usdt *UsdtCallerSession) GetOwner() (common.Address, error) {
 //
 // Solidity: function isBlackListed(address ) view returns(bool)
 func (_Usdt *UsdtCaller) IsBlackListed(opts *bind.CallOpts, arg0 common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "isBlackListed", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "isBlackListed", arg0)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // IsBlackListed is a free data retrieval call binding the contract method 0xe47d6060.
@@ -487,12 +547,17 @@ func (_Usdt *UsdtCallerSession) IsBlackListed(arg0 common.Address) (bool, error)
 //
 // Solidity: function maximumFee() view returns(uint256)
 func (_Usdt *UsdtCaller) MaximumFee(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "maximumFee")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "maximumFee")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // MaximumFee is a free data retrieval call binding the contract method 0x35390714.
@@ -513,12 +578,17 @@ func (_Usdt *UsdtCallerSession) MaximumFee() (*big.Int, error) {
 //
 // Solidity: function name() view returns(string)
 func (_Usdt *UsdtCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -539,12 +609,17 @@ func (_Usdt *UsdtCallerSession) Name() (string, error) {
 //
 // Solidity: function owner() view returns(address)
 func (_Usdt *UsdtCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "owner")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -565,12 +640,17 @@ func (_Usdt *UsdtCallerSession) Owner() (common.Address, error) {
 //
 // Solidity: function paused() view returns(bool)
 func (_Usdt *UsdtCaller) Paused(opts *bind.CallOpts) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "paused")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "paused")
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // Paused is a free data retrieval call binding the contract method 0x5c975abb.
@@ -591,12 +671,17 @@ func (_Usdt *UsdtCallerSession) Paused() (bool, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_Usdt *UsdtCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -617,12 +702,17 @@ func (_Usdt *UsdtCallerSession) Symbol() (string, error) {
 //
 // Solidity: function upgradedAddress() view returns(address)
 func (_Usdt *UsdtCaller) UpgradedAddress(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Usdt.contract.Call(opts, out, "upgradedAddress")
-	return *ret0, err
+	var out []interface{}
+	err := _Usdt.contract.Call(opts, &out, "upgradedAddress")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // UpgradedAddress is a free data retrieval call binding the contract method 0x26976e3f.
@@ -1042,6 +1132,7 @@ func (_Usdt *UsdtFilterer) ParseAddedBlackList(log types.Log) (*UsdtAddedBlackLi
 	if err := _Usdt.contract.UnpackLog(event, "AddedBlackList", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1195,6 +1286,7 @@ func (_Usdt *UsdtFilterer) ParseApproval(log types.Log) (*UsdtApproval, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1328,6 +1420,7 @@ func (_Usdt *UsdtFilterer) ParseDeprecate(log types.Log) (*UsdtDeprecate, error)
 	if err := _Usdt.contract.UnpackLog(event, "Deprecate", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1462,6 +1555,7 @@ func (_Usdt *UsdtFilterer) ParseDestroyedBlackFunds(log types.Log) (*UsdtDestroy
 	if err := _Usdt.contract.UnpackLog(event, "DestroyedBlackFunds", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1595,6 +1689,7 @@ func (_Usdt *UsdtFilterer) ParseIssue(log types.Log) (*UsdtIssue, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Issue", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1729,6 +1824,7 @@ func (_Usdt *UsdtFilterer) ParseParams(log types.Log) (*UsdtParams, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Params", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1861,6 +1957,7 @@ func (_Usdt *UsdtFilterer) ParsePause(log types.Log) (*UsdtPause, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Pause", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1994,6 +2091,7 @@ func (_Usdt *UsdtFilterer) ParseRedeem(log types.Log) (*UsdtRedeem, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Redeem", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -2127,6 +2225,7 @@ func (_Usdt *UsdtFilterer) ParseRemovedBlackList(log types.Log) (*UsdtRemovedBla
 	if err := _Usdt.contract.UnpackLog(event, "RemovedBlackList", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -2280,6 +2379,7 @@ func (_Usdt *UsdtFilterer) ParseTransfer(log types.Log) (*UsdtTransfer, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -2412,5 +2512,6 @@ func (_Usdt *UsdtFilterer) ParseUnpause(log types.Log) (*UsdtUnpause, error) {
 	if err := _Usdt.contract.UnpackLog(event, "Unpause", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

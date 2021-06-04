@@ -1,15 +1,16 @@
 #!/bin/bash
 
-output=option
-prefix=BFSS_
-
-
-rm -rf ./prod/*
+rm -rf ./dev/android/*
 echo "building android..."
-gomobile bind -target=android -o ./dev/${output}.aar -ldflags "-s -w" ./option ./wallet
+gomobile bind -target=android/arm64 -o ./dev/android/epik.aar -ldflags "-s -w" ./epik ./hd
 echo "android build"
+
+output=epik
+prefix=EPIK_
+
+rm -rf ./dev/ios/*
+
 echo "building ios..."
-gomobile bind -target=ios -o ./dev/${output}.framework -prefix=${prefix} -ldflags "-s -w" ./option ./wallet
-zip -q -r ./dev/${output}.framework.zip ./dev/${output}.framework
-rm -rf ./dev/${output}.framework
+gomobile bind -target=ios -o ./dev/ios/${output}.framework -prefix=${prefix} -ldflags "-s -w"  ./epik ./hd
+# zip -q -r ./dev/ios/${output}.framework.zip ./dev/ios/${output}.framework
 echo "ios build"

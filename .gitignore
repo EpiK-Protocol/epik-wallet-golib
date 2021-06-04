@@ -1,3 +1,4 @@
+*.DS_Store
 dev/
 epik-wallet
 epik-wallet-golib
