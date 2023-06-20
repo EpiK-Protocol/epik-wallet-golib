@@ -45,27 +45,48 @@ const (
 )
 
 // //mainnet
-// var contractAddress = map[currencyType]string{
-// 	USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-// 	EPK:  "0xDaF88906aC1DE12bA2b1D2f7bfC94E9638Ac40c4",
-// 	UNI:  "0x66e32d1B776a43935ed20E8dc39A27A140d31C8f",
-// }
-
-// const uniswapContract = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D" //mainnet
-// const txHost="http://tx.epik-protocol.io"
-
-//ropsten
 var contractAddress = map[currencyType]string{
-	USDT: "0xD28d251684085Af5eCd283847E4666f80094e26B",
-	EPK:  "0x6936bae5b97c6eba746932e9cfa33931963cd333",
-	UNI:  "0xfc2d0b1db58fe2b94b5cf0e2604471a2cb2432ca",
+	USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+	EPK:  "0xDaF88906aC1DE12bA2b1D2f7bfC94E9638Ac40c4",
+	UNI:  "0x66e32d1B776a43935ed20E8dc39A27A140d31C8f",
 }
 
-const uniswapContract = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" //ropsten
-const txHost = "http://tx-ropsten.epik-protocol.io"
+var uniswapContract = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D" //mainnet
+var txHost = "http://tx.epik-protocol.io"
+
+//ropsten
+// var contractAddress = map[currencyType]string{
+// 	USDT: "0xD28d251684085Af5eCd283847E4666f80094e26B",
+// 	EPK:  "0x6936bae5b97c6eba746932e9cfa33931963cd333",
+// 	UNI:  "0xfc2d0b1db58fe2b94b5cf0e2604471a2cb2432ca",
+// }
+
+// const uniswapContract = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" //ropsten
+// const txHost = "http://tx-ropsten.epik-protocol.io"
 
 func init() {
 	decimal.DivisionPrecision = 18
+}
+
+func SetDebug(debug bool) {
+	if debug {
+		contractAddress = map[currencyType]string{
+			USDT: "0xD28d251684085Af5eCd283847E4666f80094e26B",
+			EPK:  "0x6936bae5b97c6eba746932e9cfa33931963cd333",
+			UNI:  "0xfc2d0b1db58fe2b94b5cf0e2604471a2cb2432ca",
+		}
+		uniswapContract = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" //ropsten
+		txHost = "http://tx-ropsten.epik-protocol.io"
+	} else {
+		contractAddress = map[currencyType]string{
+			USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+			EPK:  "0xDaF88906aC1DE12bA2b1D2f7bfC94E9638Ac40c4",
+			UNI:  "0x66e32d1B776a43935ed20E8dc39A27A140d31C8f",
+		}
+		uniswapContract = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D" //mainnet
+		txHost = "http://tx.epik-protocol.io"
+
+	}
 }
 
 //NewFromMnemonic ...
@@ -180,7 +201,7 @@ func (wallet *Wallet) Balance(address string) (balance string, err error) {
 	if err != nil {
 		return
 	}
-	balance = bigIntDiv(bal.String(), 18)
+	balance = decimal.NewFromBigInt(bal, -18).String()
 	return
 }
 
@@ -234,7 +255,7 @@ func (wallet *Wallet) TokenBalance(address string, currency string) (balance str
 		if err != nil {
 			return "", err
 		}
-		balance = bigIntDiv(bal.String(), int(dec.Int64()))
+		balance = decimal.NewFromBigInt(bal, -int32(dec.Int64())).String()
 	case EPK:
 		contract := common.HexToAddress(contractAddress[EPK])
 		epkToken, err := epk.NewEpk(contract, client)
@@ -250,7 +271,7 @@ func (wallet *Wallet) TokenBalance(address string, currency string) (balance str
 		if err != nil {
 			return "", err
 		}
-		balance = bigIntDiv(bal.String(), int(dec))
+		balance = decimal.NewFromBigInt(bal, -int32(dec)).String()
 	case UNI:
 		contract := common.HexToAddress(contractAddress[UNI])
 		uniToken, err := univ2.NewUniv2(contract, client)
@@ -266,7 +287,7 @@ func (wallet *Wallet) TokenBalance(address string, currency string) (balance str
 		if err != nil {
 			return "", err
 		}
-		balance = bigIntDiv(bal.String(), int(dec))
+		balance = decimal.NewFromBigInt(bal, -int32(dec)).String()
 	default:
 		return "", fmt.Errorf("currency  unsuppoted")
 	}
@@ -290,22 +311,21 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 	defer client.Close()
 	fromAddr := common.HexToAddress(from)
 	toAddr := common.HexToAddress(to)
-	amountWei, err := decimal.NewFromString(bigIntMul(amount, 18))
+	amountWei, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", err
 	}
-
-	nonce, err := client.NonceAt(context.Background(), fromAddr, nil)
+	amountWei = amountWei.Mul(decimal.NewFromBigInt(big.NewInt(1), 18))
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddr)
 	if err != nil {
 		return "", err
 	}
-	gasLimit := uint64(21000)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return "", err
 	}
-
-	tx := types.NewTransaction(nonce, toAddr, amountWei.BigInt(), gasLimit, gasPrice, nil)
+	gasPrice = new(big.Int).Add(gasPrice, new(big.Int).Div(gasPrice, big.NewInt(10)))
+	tx := types.NewTransaction(nonce, toAddr, amountWei.BigInt(), 21000, gasPrice, nil)
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
 		return "", err
@@ -314,7 +334,12 @@ func (wallet *Wallet) Transfer(from string, to string, amount string) (txHash st
 	if err != nil {
 		return "", err
 	}
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	signer := types.LatestSignerForChainID(chainID)
+	signature, err := crypto.Sign(signer.Hash(tx).Bytes(), privateKey)
+	if err != nil {
+		return "", err
+	}
+	signedTx, err := tx.WithSignature(signer, signature)
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		return "", err
@@ -332,6 +357,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		return
 	}
 	defer client.Close()
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
 	fromAddr := common.HexToAddress(from)
 	toAddr := common.HexToAddress(to)
 	switch currencyType(currency) {
@@ -350,10 +379,11 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		amountWei, err := decimal.NewFromString(bigIntMul(amount, int(dec.Int64())))
+		amountWei, err := decimal.NewFromString(amount)
 		if err != nil {
 			return "", err
 		}
+		amountWei = amountWei.Mul(decimal.NewFromBigInt(big.NewInt(1), int32(dec.Int64())))
 		if amountWei.Cmp(decimal.NewFromBigInt(bal, 10)) > 0 {
 			return "", fmt.Errorf("out of balance")
 		}
@@ -361,7 +391,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return "", err
+		}
 		tx, err := usdtToken.Transfer(auth, toAddr, amountWei.BigInt())
 		if err != nil {
 			return "", err
@@ -382,10 +415,11 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		amountWei, err := decimal.NewFromString(bigIntMul(amount, int(dec)))
+		amountWei, err := decimal.NewFromString(amount)
 		if err != nil {
 			return "", err
 		}
+		amountWei = amountWei.Mul(decimal.NewFromBigInt(big.NewInt(1), int32(dec)))
 		if amountWei.Cmp(decimal.NewFromBigInt(bal, 10)) > 0 {
 			return "", fmt.Errorf("out of balance")
 		}
@@ -393,7 +427,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return "", err
+		}
 		tx, err := epkToken.Transfer(auth, toAddr, amountWei.BigInt())
 		if err != nil {
 			return "", err
@@ -414,10 +451,11 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		amountWei, err := decimal.NewFromString(bigIntMul(amount, int(dec)))
+		amountWei, err := decimal.NewFromString(amount)
 		if err != nil {
 			return "", err
 		}
+		amountWei = amountWei.Mul(decimal.NewFromBigInt(big.NewInt(1), int32(dec)))
 		if amountWei.Cmp(decimal.NewFromBigInt(bal, 10)) > 0 {
 			return "", fmt.Errorf("out of balance")
 		}
@@ -425,7 +463,10 @@ func (wallet *Wallet) TransferToken(from string, to string, currency string, amo
 		if err != nil {
 			return "", err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return "", err
+		}
 		tx, err := uniToken.Transfer(auth, toAddr, amountWei.BigInt())
 		if err != nil {
 			return "", err
@@ -482,7 +523,7 @@ func (wallet *Wallet) AccelerateTx(srcTxHash string, gasRate float64) (txHash st
 	if err != nil {
 		return "", err
 	}
-	msg, err := tx.AsMessage(types.NewEIP155Signer(tx.ChainId()))
+	msg, err := tx.AsMessage(types.LatestSignerForChainID(tx.ChainId()), nil)
 	if err != nil {
 		return
 	}
@@ -490,9 +531,16 @@ func (wallet *Wallet) AccelerateTx(srcTxHash string, gasRate float64) (txHash st
 	if err != nil {
 		return "", err
 	}
+	gasLimit := uint64(float64(tx.Gas()) * gasRate)
 	gasPrice := decimal.NewFromBigInt(tx.GasPrice(), 0).Mul(decimal.NewFromFloat(gasRate))
-	tx = types.NewTransaction(tx.Nonce(), *tx.To(), tx.Value(), uint64(float64(tx.Gas())*gasRate), gasPrice.BigInt(), tx.Data())
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	tx = types.NewTransaction(tx.Nonce(), *tx.To(), tx.Value(), uint64(float64(gasLimit)*gasRate), gasPrice.BigInt(), tx.Data())
+
+	signer := types.LatestSignerForChainID(chainID)
+	signature, err := crypto.Sign(signer.Hash(tx).Bytes(), privateKey)
+	if err != nil {
+		return "", err
+	}
+	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		return "", err
 	}
@@ -520,7 +568,7 @@ func (wallet *Wallet) CancelTx(srcTxHash string) (txHash string, err error) {
 	if err != nil {
 		return "", err
 	}
-	msg, err := tx.AsMessage(types.NewEIP155Signer(tx.ChainId()))
+	msg, err := tx.AsMessage(types.LatestSignerForChainID(tx.ChainId()), nil)
 	if err != nil {
 		return
 	}
@@ -528,9 +576,15 @@ func (wallet *Wallet) CancelTx(srcTxHash string) (txHash string, err error) {
 	if err != nil {
 		return "", err
 	}
+	gasLimit := uint64(float64(tx.Gas()) * 1.1)
 	gasPrice := decimal.NewFromBigInt(tx.GasPrice(), 0).Mul(decimal.NewFromFloat(1.1))
-	tx = types.NewTransaction(tx.Nonce(), *tx.To(), big.NewInt(0), uint64(float64(tx.Gas())*1.1), gasPrice.BigInt(), nil)
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	tx = types.NewTransaction(tx.Nonce(), *tx.To(), big.NewInt(0), gasLimit, gasPrice.BigInt(), nil)
+	signer := types.LatestSignerForChainID(chainID)
+	signature, err := crypto.Sign(signer.Hash(tx).Bytes(), privateKey)
+	if err != nil {
+		return "", err
+	}
+	signedTx, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		return "", err
 	}
@@ -543,7 +597,10 @@ func (wallet *Wallet) CancelTx(srcTxHash string) (txHash string, err error) {
 
 //Transactions ...
 func (wallet *Wallet) Transactions(address string, currency string, page, offset int64, asc bool) (txs string, err error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/api", txHost))
+	u, err := url.Parse(fmt.Sprintf("%s/api", txHost))
+	if err != nil {
+		return
+	}
 	query := u.Query()
 	query.Set("module", "account")
 	query.Set("page", fmt.Sprintf("%d", page))
@@ -566,6 +623,7 @@ func (wallet *Wallet) Transactions(address string, currency string, page, offset
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf(resp.Status)
 	}
@@ -584,6 +642,10 @@ func (wallet *Wallet) approve(address common.Address, currency string) (allowed 
 		return
 	}
 	defer client.Close()
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
 	switch currencyType(currency) {
 	case USDT:
 		contract := common.HexToAddress(contractAddress[USDT])
@@ -603,7 +665,10 @@ func (wallet *Wallet) approve(address common.Address, currency string) (allowed 
 		if err != nil {
 			return allowed, err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return allowed, err
+		}
 		tx, err := usdtToken.Approve(auth, uniContract, math.MaxBig256)
 		if err != nil {
 			return allowed, err
@@ -638,7 +703,10 @@ func (wallet *Wallet) approve(address common.Address, currency string) (allowed 
 		if err != nil {
 			return allowed, err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return allowed, err
+		}
 		_, err = epkToken.Approve(auth, uniContract, math.MaxBig256)
 		if err != nil {
 			return allowed, err
@@ -671,7 +739,10 @@ func (wallet *Wallet) approve(address common.Address, currency string) (allowed 
 		if err != nil {
 			return allowed, err
 		}
-		auth := bind.NewKeyedTransactor(privateKey)
+		auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+		if err != nil {
+			return allowed, err
+		}
 		_, err = uniToken.Approve(auth, uniContract, math.MaxBig256)
 		if err != nil {
 			return allowed, err
@@ -753,12 +824,18 @@ func (wallet *Wallet) UniswapAddLiquidity(address, tokenA, tokenB, amountADesire
 	}
 	uni, err := uniswap.NewUniswap(contact, client)
 	defer client.Close()
-
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
 	privateKey, err := wallet.getPrivateKey(addr)
 	if err != nil {
 		return "", err
 	}
-	auth := bind.NewKeyedTransactor(privateKey)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		return "", err
+	}
 	tx, err := uni.AddLiquidity(auth, common.HexToAddress(contractAddress[currencyType(tokenA)]), common.HexToAddress(contractAddress[currencyType(tokenB)]), amAdesiredBig.BigInt(), amBdesiredBig.BigInt(), amAMinBig.BigInt(), amBMinBig.BigInt(), addr, deadlineBig.BigInt())
 	if err != nil {
 		return "", err
@@ -819,11 +896,18 @@ func (wallet *Wallet) UniswapRemoveLiquidity(address, tokenA, tokenB, liquidity,
 	}
 	uni, err := uniswap.NewUniswap(contract, client)
 	defer client.Close()
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
 	privateKey, err := wallet.getPrivateKey(addr)
 	if err != nil {
 		return "", err
 	}
-	auth := bind.NewKeyedTransactor(privateKey)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		return "", err
+	}
 	tx, err := uni.RemoveLiquidity(auth, common.HexToAddress(contractAddress[currencyType(tokenA)]), common.HexToAddress(contractAddress[currencyType(tokenB)]), liquidityBig.BigInt(), amAMinBig.BigInt(), amBMinBig.BigInt(), addr, deadlineBig.BigInt())
 	if err != nil {
 		return "", err
@@ -879,12 +963,18 @@ func (wallet *Wallet) UniswapExactTokenForTokens(address, tokenA, tokenB, amount
 	}
 	uni, err := uniswap.NewUniswap(contract, client)
 	defer client.Close()
-
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
 	privateKey, err := wallet.getPrivateKey(addr)
 	if err != nil {
 		return "", err
 	}
-	auth := bind.NewKeyedTransactor(privateKey)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		return "", err
+	}
 	tx, err := uni.SwapExactTokensForTokens(auth, amInBig.BigInt(), amOutMinBig.BigInt(), path, addr, deadlineInt.BigInt())
 	if err != nil {
 		return "", err
@@ -1000,21 +1090,6 @@ func (wallet *Wallet) UniswapInfo(address string) (info *UniswapInfo, err error)
 	fmt.Println(userBalance, decimal.NewFromBigInt(userBalance, 0).Div(decUNI), info.UNI)
 	info.LastBlockTime = int64(reserves.BlockTimestampLast)
 	return
-}
-
-func bigIntDiv(balance string, decimals int) string {
-	bal, _ := decimal.NewFromString(balance)
-	for i := 0; i < decimals; i++ {
-		bal = bal.Div(decimal.NewFromInt(10))
-	}
-	return bal.String()
-}
-func bigIntMul(balance string, decimals int) string {
-	bal, _ := decimal.NewFromString(balance)
-	for i := 0; i < decimals; i++ {
-		bal = bal.Mul(decimal.NewFromInt(10))
-	}
-	return bal.String()
 }
 
 func (wallet *Wallet) getPrivateKey(address common.Address) (priKey *ecdsa.PrivateKey, err error) {

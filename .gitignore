@@ -3,4 +3,5 @@ dev/
 epik-wallet
 epik-wallet-golib
 epik/wallet_test.go
+epik/wallet_test.go
 

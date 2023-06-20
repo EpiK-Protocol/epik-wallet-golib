@@ -1,15 +1,20 @@
 package hd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var wallet *Wallet
 
 func init() {
+	SetDebug(true)
 	var err error
 	wallet, err = NewFromMnemonic("fine bubble drum remember motor kiss arctic leisure adjust immune involve expect")
 	panicErr(err)
@@ -81,12 +86,22 @@ func TestLiquidityInfo(t *testing.T) {
 }
 
 func TestVerifyTX(t *testing.T) {
-
+	client, err := ethclient.DialContext(context.Background(), "wss://ropsten.infura.io/ws/v3/1bbd25bd3af94ca2b294f93c346f69cd")
+	panicErr(err)
+	defer client.Close()
+	hash := common.HexToHash("0x2394649837d3b847c8067bfca86b477b053efd68153532098d50c3bddfff4c38")
+	_, isPending, err := client.TransactionByHash(context.Background(), hash)
+	panicErr(err)
+	fmt.Println(isPending)
+	receipt, err := client.TransactionReceipt(context.Background(), hash)
+	panicErr(err)
+	fmt.Println(receipt)
 }
 
 func TestAccelerateTx(t *testing.T) {
 	addr := "0x0FdFC04e8c49cdFfA5A69278BAC26E70E79DcB35"
-	txHash, err := wallet.TransferToken(addr, "0x00", "USDT", "1.1")
+	// txHash, err := wallet.TransferToken(addr, "0x093f9569dF5Fa34c3AeC2E855D264f6a140c642e", "USDT", "1.1")
+	txHash, err := wallet.Transfer(addr, "0x093f9569dF5Fa34c3AeC2E855D264f6a140c642e", "0.0001")
 	panicErr(err)
 	fmt.Printf("First Tx Hash:	%s\n", txHash)
 	txHash, err = wallet.AccelerateTx(txHash, 1.2)
@@ -96,7 +111,7 @@ func TestAccelerateTx(t *testing.T) {
 
 func TestCancelTx(t *testing.T) {
 	addr := "0x0FdFC04e8c49cdFfA5A69278BAC26E70E79DcB35"
-	txHash, err := wallet.TransferToken(addr, "0x00", "USDT", "1.2")
+	txHash, err := wallet.Transfer(addr, "0x093f9569dF5Fa34c3AeC2E855D264f6a140c642e", "0.00011")
 	panicErr(err)
 	fmt.Printf("First Tx Hash:	%s\n", txHash)
 	txHash, err = wallet.CancelTx(txHash)

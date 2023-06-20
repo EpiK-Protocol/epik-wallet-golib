@@ -1,7 +1,6 @@
 package bls
 
 import (
-	"crypto/rand"
 	"fmt"
 
 	"github.com/filecoin-project/go-address"
@@ -22,14 +21,14 @@ type blsSigner struct{}
 
 func (blsSigner) GenPrivate() ([]byte, error) {
 	// Generate 32 bytes of randomness
-	var ikm [32]byte
-	_, err := rand.Read(ikm[:])
-	if err != nil {
-		return nil, fmt.Errorf("bls signature error generating random data")
-	}
-	// Note private keys seem to be serialized little-endian!
-	pk := blst.KeyGen(ikm[:]).ToLEndian()
-	return pk, nil
+	// var ikm [32]byte
+	// _, err := rand.Read(ikm[:])
+	// if err != nil {
+	// 	return nil, fmt.Errorf("bls signature error generating random data")
+	// }
+	// // Note private keys seem to be serialized little-endian!
+	// pk := blst.KeyGen(ikm[:]).ToLEndian()
+	return nil, nil
 }
 
 func (blsSigner) GenPrivateFromSeed(seed []byte) ([]byte, error) {
